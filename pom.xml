@@ -265,7 +265,7 @@
 
 	<scm>
 		<connection>scm:git:https://github.com/sbrinkmann/jcrom-extended.git</connection>
-		<developerConnection>scm:git:https://github.com/sbrinkmann/jcrom-extended.git</developerConnection>
+		<developerConnection>scm:git:https@github.com:sbrinkmann/jcrom-extended.git</developerConnection>
 		<url>http://github.com/sbrinkmann/jcrom-extended</url>
 	</scm>
 
