@@ -22,28 +22,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * This annotation is used mark fields that should be mapped to JCR node properties.
- * 
- * @author Olafur Gauti Gudmundsson
- * @author Nicolas Dos Santos
- */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD, ElementType.ANNOTATION_TYPE })
-public @interface JcrProperty {
+public @interface JcrPropertyCheckSuccessful
+{
 
-    public static final String DEFAULT_VALUE = "##NO DEFAULT VALUE##";
-    
-    public static final String DEFAULT_FIELDNAME = "##fieldName##";
-    
-    /**
-     * The name of the JCR property. Defaults to the name of the field being annotated.
-     * 
-     * @return the name of the JCR property storing the value that the field represents
-     */
-    String name() default DEFAULT_FIELDNAME;
-    
-    String defaultValue() default DEFAULT_VALUE;
-    
-    boolean required() default false;
 }

@@ -31,6 +31,7 @@ import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 
 import org.jcrom.annotations.JcrChildNode;
+import org.jcrom.annotations.JcrProperty;
 import org.jcrom.util.NodeFilter;
 import org.jcrom.util.ReflectionUtils;
 
@@ -53,7 +54,7 @@ class ChildNodeMapper {
     private String getNodeName(Field field) {
         JcrChildNode jcrChildNode = mapper.getJcrom().getAnnotationReader().getAnnotation(field, JcrChildNode.class);
         String name = field.getName();
-        if (!jcrChildNode.name().equals(Mapper.DEFAULT_FIELDNAME)) {
+        if (!jcrChildNode.name().equals(JcrProperty.DEFAULT_FIELDNAME)) {
             name = jcrChildNode.name();
         }
         return name;

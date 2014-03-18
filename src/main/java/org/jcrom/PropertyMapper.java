@@ -48,6 +48,8 @@ import org.jcrom.annotations.JcrSerializedProperty;
 import org.jcrom.util.JcrUtils;
 import org.jcrom.util.NodeFilter;
 import org.jcrom.util.ReflectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class handles mappings of type @JcrProperty
@@ -57,6 +59,8 @@ import org.jcrom.util.ReflectionUtils;
  */
 class PropertyMapper {
 
+    private static final Logger LOG = LoggerFactory.getLogger(PropertyMapper.class);
+    
     private final Mapper mapper;
 
     public PropertyMapper(Mapper mapper) {
@@ -108,16 +112,27 @@ class PropertyMapper {
     String getSerializedPropertyName(Field field) {
         JcrSerializedProperty jcrProperty = mapper.getJcrom().getAnnotationReader().getAnnotation(field, JcrSerializedProperty.class);
         String propertyName = field.getName();
-        if (!jcrProperty.name().equals(Mapper.DEFAULT_FIELDNAME)) {
+        if (!jcrProperty.name().equals(JcrProperty.DEFAULT_FIELDNAME)) {
             propertyName = jcrProperty.name();
         }
         return propertyName;
     }
 
+    Object getDefaultValue(Field field)
+    {
+        JcrProperty jcrProperty = mapper.getJcrom().getAnnotationReader().getAnnotation(field, JcrProperty.class);
+        return jcrProperty.defaultValue();
+    }
+    
+    boolean getPropertyRequired(Field field) {
+        JcrProperty jcrProperty = mapper.getJcrom().getAnnotationReader().getAnnotation(field, JcrProperty.class);
+        return jcrProperty.required();
+    }
+    
     String getPropertyName(Field field) {
         JcrProperty jcrProperty = mapper.getJcrom().getAnnotationReader().getAnnotation(field, JcrProperty.class);
         String name = field.getName();
-        if (!jcrProperty.name().equals(Mapper.DEFAULT_FIELDNAME)) {
+        if (!jcrProperty.name().equals(JcrProperty.DEFAULT_FIELDNAME)) {
             name = jcrProperty.name();
         }
         return name;
@@ -126,13 +141,13 @@ class PropertyMapper {
     String getProtectedPropertyName(Field field) {
         JcrProtectedProperty jcrProperty = mapper.getJcrom().getAnnotationReader().getAnnotation(field, JcrProtectedProperty.class);
         String name = field.getName();
-        if (!jcrProperty.name().equals(Mapper.DEFAULT_FIELDNAME)) {
+        if (!jcrProperty.name().equals(JcrProperty.DEFAULT_FIELDNAME)) {
             name = jcrProperty.name();
         }
         return name;
     }
 
-    void mapPropertyToField(Object obj, Field field, Node node, int depth, NodeFilter nodeFilter) throws RepositoryException, IllegalAccessException, IOException {
+    boolean mapPropertyToField(Object obj, Field field, Node node, int depth, NodeFilter nodeFilter) throws RepositoryException, IllegalAccessException, IOException {
         String name = getPropertyName(field);
 
         if (nodeFilter == null || nodeFilter.isIncluded(NodeFilter.PROPERTY_PREFIX + field.getName(), node, depth)) {
@@ -151,6 +166,22 @@ class PropertyMapper {
                 mapToField(name, field, obj, node);
             }
         }
+        
+        Object defaultValue = getDefaultValue(field);
+        if(field.get(obj) == null && !JcrProperty.DEFAULT_VALUE.equals(defaultValue))
+        {
+            try
+            {
+                field.set(obj, defaultValue);
+            }
+            catch (Exception e)
+            {
+                LOG.error("Error while mapping default value to field.", e);
+            }
+        }
+        
+        boolean propertyRequired = getPropertyRequired(field);
+        return !propertyRequired || (propertyRequired && field.get(obj) != null);
     }
 
     void mapProtectedPropertyToField(Object obj, Field field, Node node) throws RepositoryException, IllegalAccessException, IOException {

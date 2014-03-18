@@ -4,8 +4,8 @@
 
 	<groupId>org.jcrom</groupId>
 	<artifactId>jcrom-extended</artifactId>
-	<packaging>jar</packaging>
 	<version>2.1.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
 
 	<name>JCROM</name>
 	<description>A lightweight framework for mapping Java objects to/from a Java Content Repository (JCR).</description>
@@ -88,6 +88,11 @@
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-core</artifactId>
 			<version>1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.6</version>
 		</dependency>
 	</dependencies>
 
@@ -260,9 +265,9 @@
 	</build>
 
 	<scm>
-		<url>http://code.google.com/p/JCROM/source/browse</url>
-		<connection>scm:svn:http://JCROM.googlecode.com/svn/trunk/</connection>
-		<developerConnection>scm:svn:https://JCROM.googlecode.com/svn/trunk/</developerConnection>
+		<connection>scm:git:git://github.com/sbrinkmann/jcrom-extended.git</connection>
+		<developerConnection>scm:git:git@github.com:sbrinkmann/jcrom-extended.git</developerConnection>
+		<url>http://github.com/sbrinkmann/jcrom-extended</url>
 	</scm>
 
 	<distributionManagement>
@@ -277,21 +282,6 @@
 			<url>file://${project.basedir}/mvn-repo-snapshot</url>
 		</snapshotRepository>
 	</distributionManagement>
-
-	<!-- <distributionManagement> -->
-	<!-- <repository> -->
-	<!-- <id>googlecode-releases</id> -->
-	<!-- <name>Google Code Releases Repository</name> -->
-	<!-- <uniqueVersion>false</uniqueVersion> -->
-	<!-- <url>svn:https://${project.name}.googlecode.com/svn/repo/releases</url> -->
-	<!-- </repository> -->
-	<!-- <snapshotRepository> -->
-	<!-- <id>googlecode-snapshots</id> -->
-	<!-- <name>Google Code Snapshots Repository</name> -->
-	<!-- <uniqueVersion>false</uniqueVersion> -->
-	<!-- <url>svn:https://${project.name}.googlecode.com/svn/repo/snapshots</url> -->
-	<!-- </snapshotRepository> -->
-	<!-- </distributionManagement> -->
 
 	<reporting>
 		<plugins>

@@ -33,6 +33,7 @@ import javax.jcr.Session;
 import javax.jcr.Value;
 
 import org.jcrom.annotations.JcrFileNode;
+import org.jcrom.annotations.JcrProperty;
 import org.jcrom.annotations.JcrReference;
 import org.jcrom.util.NodeFilter;
 import org.jcrom.util.PathUtils;
@@ -55,7 +56,7 @@ class ReferenceMapper {
     private String getPropertyName(Field field) {
         JcrReference jcrReference = mapper.getJcrom().getAnnotationReader().getAnnotation(field, JcrReference.class);
         String name = field.getName();
-        if (!jcrReference.name().equals(Mapper.DEFAULT_FIELDNAME)) {
+        if (!jcrReference.name().equals(JcrProperty.DEFAULT_FIELDNAME)) {
             name = jcrReference.name();
         }
         return name;

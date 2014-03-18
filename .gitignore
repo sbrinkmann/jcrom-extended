@@ -1,4 +1,7 @@
 */target/*
+repository
+repository.xml
+
 
 # eclipse specific git ignore
 .project

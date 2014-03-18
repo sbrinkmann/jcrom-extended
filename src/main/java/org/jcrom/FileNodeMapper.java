@@ -37,6 +37,7 @@ import javax.jcr.nodetype.NodeType;
 
 import org.jcrom.annotations.JcrFileNode;
 import org.jcrom.annotations.JcrNode;
+import org.jcrom.annotations.JcrProperty;
 import org.jcrom.util.NodeFilter;
 import org.jcrom.util.ReflectionUtils;
 import org.jcrom.util.io.IOUtils;
@@ -58,7 +59,7 @@ class FileNodeMapper {
     private String getNodeName(Field field) {
         JcrFileNode jcrFileNode = mapper.getJcrom().getAnnotationReader().getAnnotation(field, JcrFileNode.class);
         String name = field.getName();
-        if (!jcrFileNode.name().equals(Mapper.DEFAULT_FIELDNAME)) {
+        if (!jcrFileNode.name().equals(JcrProperty.DEFAULT_FIELDNAME)) {
             name = jcrFileNode.name();
         }
         return name;
