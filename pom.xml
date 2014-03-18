@@ -269,7 +269,7 @@
 		<repository>
 			<id>internal.repo</id>
 			<name>Internal Repository</name>
-			<url>file://${project.basedir}/mvn-repo</url>
+			<url>file://${basedir}/mvn-repo</url>
 		</repository>
 		<snapshotRepository>
 			<id>internal.snapshotRepo</id>
