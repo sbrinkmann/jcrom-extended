@@ -50,6 +50,7 @@ import org.jcrom.annotations.JcrFileNode;
 import org.jcrom.annotations.JcrIdentifier;
 import org.jcrom.annotations.JcrName;
 import org.jcrom.annotations.JcrNode;
+import org.jcrom.annotations.JcrPageContentNode;
 import org.jcrom.annotations.JcrPageNode;
 import org.jcrom.annotations.JcrParentNode;
 import org.jcrom.annotations.JcrPath;
@@ -78,8 +79,6 @@ import org.slf4j.LoggerFactory;
  */
 class Mapper
 {
-    private static final String CQ_PAGE_PRIMARY_TYPE = "cq:Page";
-
     private static final Logger LOG = LoggerFactory.getLogger(Mapper.class);
 
     /** Set of classes that have been validated for mapping by this mapper */
@@ -936,8 +935,16 @@ class Mapper
             }
             else if (jcrom.getAnnotationReader().isAnnotationPresent(field, JcrChildNode.class) && nodeFilter.isDepthIncluded(depth))
             {
-                childNodeMapper.getChildrenFromNode(field, node, obj, depth, nodeFilter, this);
-
+                if(field.getType().getComponentType() == Node.class)
+                {
+                    resolveChildNode(field, obj, node);
+                }
+                else
+                {
+                    childNodeMapper.getChildrenFromNode(field, node, obj, depth, nodeFilter, this);
+                }
+                
+                allRequiredFieldsAreAssigned &= resolveFieldRequired(field, obj);
             }
             else if (jcrom.getAnnotationReader().isAnnotationPresent(field, JcrReference.class))
             {
@@ -956,11 +963,20 @@ class Mapper
             }
             else if (jcrom.getAnnotationReader().isAnnotationPresent(field, JcrPropertyCheckSuccessful.class))
             {
+                if(jcrPropertyCheckSuccessfulField != null)
+                {
+                    LOG.warn("The class [{}] defines multiple fields with the annotation [JcrPropertyCheckSuccessful]. Change your implementation so that the annotation is only used once per class.", field.getDeclaringClass().getCanonicalName());
+                }
+                
                 jcrPropertyCheckSuccessfulField = field;
             }
             else if (jcrom.getAnnotationReader().isAnnotationPresent(field, JcrPageNode.class))
             {
-                resolveParentPage(field, node, obj);
+                resolveParentNodeOfType(node, JcrPageNode.CQ_PAGE_PRIMARY_TYPE, field, obj);
+            }
+            else if (jcrom.getAnnotationReader().isAnnotationPresent(field, JcrPageContentNode.class))
+            {
+                resolveParentNodeOfType(node, JcrPageContentNode.CQ_PAGE_CONTENT_PRIMARY_TYPE, field, obj);
             }
         }
 
@@ -972,13 +988,52 @@ class Mapper
         return obj;
     }
 
-    private void resolveParentPage(Field field, Node node, Object obj)
+    private boolean resolveFieldRequired(Field field, Object obj) throws IllegalAccessException
     {
+        JcrChildNode jcrChildNode = getJcrom().getAnnotationReader().getAnnotation(field, JcrChildNode.class);
+        boolean fieldRequired = !jcrChildNode.required() || jcrChildNode.required() && field.get(obj) != null;
+        return fieldRequired;
+    }
+
+    private void resolveChildNode(Field field, Object obj, Node node)
+    {
+        JcrChildNode jcrChildNode = getJcrom().getAnnotationReader().getAnnotation(field, JcrChildNode.class);
+        String childNodeName = field.getName();
+        if(!JcrChildNode.DEFAULT_NAME.equals(jcrChildNode.name()))
+        {
+            childNodeName = jcrChildNode.name();
+        }
+        try
+        {
+            if(node.getSession().itemExists(node.getPath() + "/" + childNodeName))
+            {
+                Node childNode = node.getNode(childNodeName);
+                field.set(obj, childNode);
+            }
+        }
+        catch(IllegalAccessException e)
+        {
+            LOG.error("Error while setting child node for field ["+ field.getName() +"] of class ["+ field.getDeclaringClass().getCanonicalName() +"]", e);
+        }
+        catch (RepositoryException e)
+        {
+            LOG.error("Error while resolving child node for field ["+ field.getName() +"] of class ["+ field.getDeclaringClass().getCanonicalName() +"]", e);
+        }
+    }
+
+    private void resolveParentNodeOfType(Node node, String nodeType, Field field, Object obj)
+    {
+        if(field.getType().getComponentType() != Node.class)
+        {
+            LOG.error("The field [{}] of class [{}] is not type of [javax.jcr.Node]", field.getName(), field.getDeclaringClass().getCanonicalName());
+            return;
+        }
+
         try
         {
             for(Node selectedNode = node;selectedNode.getDepth() >= 0;selectedNode = selectedNode.getParent())
             {
-                if (CQ_PAGE_PRIMARY_TYPE.equals(selectedNode.getPrimaryNodeType().getName()))
+                if (nodeType.equals(selectedNode.getPrimaryNodeType().getName()))
                 {
                     field.set(obj, selectedNode);
                     return;
@@ -987,7 +1042,7 @@ class Mapper
         }
         catch (Exception ex)
         {
-            LOG.error("Error while resolving parent page", ex);
+            LOG.error("Error while resolving parent node of type ["+ nodeType +"]", ex);
         }
     }
 

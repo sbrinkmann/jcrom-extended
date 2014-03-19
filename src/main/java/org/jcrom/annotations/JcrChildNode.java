@@ -45,6 +45,10 @@ import javax.jcr.nodetype.NodeType;
 @Target(ElementType.FIELD)
 public @interface JcrChildNode {
 
+    static final String DEFAULT_NAME = "fieldName";
+    
+    boolean required() default false;
+    
     /**
      * The name of the JCR container node for the child/children.
      * Defaults to the name of the field being annotated.
@@ -52,7 +56,7 @@ public @interface JcrChildNode {
      * @return the name of the JCR node storing the child that the field
      * represents
      */
-    String name() default "fieldName";
+    String name() default DEFAULT_NAME;
 
     /**
      * The node type to be applied for the child container node.

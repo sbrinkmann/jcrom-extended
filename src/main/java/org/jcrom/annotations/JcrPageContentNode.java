@@ -22,17 +22,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * This annotation
- * 
- * @author Sascha Brinkmann (eggs unimedia GmbH)
- *
- */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface JcrPageNode
+public @interface JcrPageContentNode
 {
-
-    public static final String CQ_PAGE_PRIMARY_TYPE = "cq:Page";
-    
+    public static final String CQ_PAGE_CONTENT_PRIMARY_TYPE = "cq:PageContent";
 }
