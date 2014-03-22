@@ -318,7 +318,7 @@ class ChildNodeMapper {
     Object getSingleChild(Class<?> childObjClass, Node childNode, Object obj, Mapper mapper, int depth, NodeFilter nodeFilter) throws ClassNotFoundException, InstantiationException, RepositoryException, IllegalAccessException, IOException {
         childNode = mapper.checkIfVersionedChild(childNode);
         Object childObj = mapper.createInstanceForNode(childObjClass, childNode);
-        childObj = mapper.mapNodeToClass(childObj, childNode, nodeFilter, obj, depth + 1);
+        childObj = mapper.mapNodeToClass(childObj, childNode, nodeFilter, depth + 1);
         return childObj;
     }
 

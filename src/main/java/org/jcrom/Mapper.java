@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import javax.jcr.AccessDeniedException;
+import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.Property;
@@ -362,7 +364,8 @@ class Mapper
     {
         if (node.hasProperty(Property.JCR_CHILD_VERSION_HISTORY))
         {
-            // Node versionNode = node.getSession().getNodeByUUID(node.getProperty("jcr:childVersionHistory").getString());
+            // Node versionNode =
+            // node.getSession().getNodeByUUID(node.getProperty("jcr:childVersionHistory").getString());
             Node versionNode = getNodeById(node, node.getProperty(Property.JCR_CHILD_VERSION_HISTORY).getString());
             NodeIterator it = versionNode.getNodes();
             while (it.hasNext())
@@ -482,7 +485,7 @@ class Mapper
             // special handling of JcrFile objects
             fileNodeMapper.mapSingleFile((JcrFile) obj, node, parentObj, 0, nodeFilter, this);
         }
-        mapNodeToClass(obj, node, nodeFilter, parentObj, 0);
+        mapNodeToClass(obj, node, nodeFilter, 0);
         history.remove();
         return obj;
     }
@@ -513,7 +516,7 @@ class Mapper
             // special handling of JcrFile objects
             fileNodeMapper.mapSingleFile((JcrFile) obj, node, null, 0, nodeFilter, this);
         }
-        mapNodeToClass(obj, node, nodeFilter, null, 0);
+        mapNodeToClass(obj, node, nodeFilter, 0);
         history.remove();
         return obj;
     }
@@ -530,8 +533,10 @@ class Mapper
      * @param action
      *        callback object that specifies the Jcrom actions:
      *        <ul>
-     *        <li>{@link JcromCallback#doAddNode(Node, String, JcrNode, Object)},</li>
-     *        <li>{@link JcromCallback#doAddMixinTypes(Node, String[], JcrNode, Object)},</li>
+     *        <li>
+     *        {@link JcromCallback#doAddNode(Node, String, JcrNode, Object)} ,</li>
+     *        <li>
+     *        {@link JcromCallback#doAddMixinTypes(Node, String[], JcrNode, Object)} ,</li>
      *        <li>{@link JcromCallback#doComplete(Object, Node)},</li>
      *        </ul>
      * @return the newly created JCR node
@@ -673,7 +678,8 @@ class Mapper
                 String oldClassName = node.getProperty(jcrNode.classNameProperty()).getString();
                 if (!oldClassName.equals(entity.getClass().getCanonicalName()))
                 {
-                    // different class, so we should remove the properties of the old class
+                    // different class, so we should remove the properties of
+                    // the old class
                     Class<?> oldClass = getClassForName(oldClassName);
                     if (oldClass != null)
                     {
@@ -788,8 +794,8 @@ class Mapper
         return false;
     }
 
-    Object mapNodeToClass(Object obj, Node node, NodeFilter nodeFilter, Object parentObject, int depth) throws ClassNotFoundException, InstantiationException,
-            RepositoryException, IllegalAccessException, IOException
+    Object mapNodeToClass(Object obj, Node node, NodeFilter nodeFilter, int depth) throws ClassNotFoundException, InstantiationException, RepositoryException,
+            IllegalAccessException, IOException
     {
 
         if (!ReflectionUtils.extendsClass(obj.getClass(), JcrFile.class))
@@ -889,7 +895,8 @@ class Mapper
                 }
                 else if (isVersionable(node))
                 {
-                    // if we're not browsing version history, then this must be the base version
+                    // if we're not browsing version history, then this must be
+                    // the base version
                     // Version baseVersion = node.getBaseVersion();
                     Version baseVersion = getVersionManager(node).getBaseVersion(node.getPath());
                     field.set(obj, baseVersion.getName());
@@ -905,7 +912,8 @@ class Mapper
                 }
                 else if (isVersionable(node))
                 {
-                    // if we're not browsing version history, then this must be the base version
+                    // if we're not browsing version history, then this must be
+                    // the base version
                     // Version baseVersion = node.getBaseVersion();
                     Version baseVersion = getVersionManager(node).getBaseVersion(node.getPath());
                     field.set(obj, JcrUtils.getValue(field.getType(), node.getSession().getValueFactory().createValue(baseVersion.getCreated())));
@@ -927,6 +935,8 @@ class Mapper
             }
             else if (jcrom.getAnnotationReader().isAnnotationPresent(field, JcrParentNode.class))
             {
+                Object parentObject = resolveParentObject(field, node);
+
                 if (parentObject != null && field.getType().isInstance(parentObject))
                 {
                     field.set(obj, parentObject);
@@ -935,7 +945,7 @@ class Mapper
             }
             else if (jcrom.getAnnotationReader().isAnnotationPresent(field, JcrChildNode.class) && nodeFilter.isDepthIncluded(depth))
             {
-                if(field.getType().getComponentType() == Node.class)
+                if (Node.class.equals(field.getType()))
                 {
                     resolveChildNode(field, obj, node);
                 }
@@ -943,7 +953,7 @@ class Mapper
                 {
                     childNodeMapper.getChildrenFromNode(field, node, obj, depth, nodeFilter, this);
                 }
-                
+
                 allRequiredFieldsAreAssigned &= resolveFieldRequired(field, obj);
             }
             else if (jcrom.getAnnotationReader().isAnnotationPresent(field, JcrReference.class))
@@ -963,11 +973,13 @@ class Mapper
             }
             else if (jcrom.getAnnotationReader().isAnnotationPresent(field, JcrPropertyCheckSuccessful.class))
             {
-                if(jcrPropertyCheckSuccessfulField != null)
+                if (jcrPropertyCheckSuccessfulField != null)
                 {
-                    LOG.warn("The class [{}] defines multiple fields with the annotation [JcrPropertyCheckSuccessful]. Change your implementation so that the annotation is only used once per class.", field.getDeclaringClass().getCanonicalName());
+                    LOG.warn(
+                            "The class [{}] defines multiple fields with the annotation [JcrPropertyCheckSuccessful]. Change your implementation so that the annotation is only used once per class.",
+                            field.getDeclaringClass().getCanonicalName());
                 }
-                
+
                 jcrPropertyCheckSuccessfulField = field;
             }
             else if (jcrom.getAnnotationReader().isAnnotationPresent(field, JcrPageNode.class))
@@ -988,6 +1000,59 @@ class Mapper
         return obj;
     }
 
+    private Object resolveParentObject(Field field, Node node) throws RepositoryException
+    {
+        JcrParentNode jcrParentNode = getJcrom().getAnnotationReader().getAnnotation(field, JcrParentNode.class);
+        int relativeParentLevel = jcrParentNode.relativeParentLevel();
+        int absoluteParentLevel = jcrParentNode.absoluteParentLevel();
+        boolean relativeParentLevelDefined = JcrParentNode.DEFAULT_VALUE_PARENT_LEVEL != relativeParentLevel;
+        boolean absoluteParentLevelDefined = JcrParentNode.DEFAULT_VALUE_PARENT_LEVEL != absoluteParentLevel;
+
+        Node resolvedParentNode = null;
+
+        if (!JcrParentNode.DEFAULT_PARENT_PATH.equals(jcrParentNode.relativeParentPath()))
+        {
+            if (node.hasNode(jcrParentNode.relativeParentPath()))
+            {
+                resolvedParentNode = node.getNode(jcrParentNode.relativeParentPath());
+            }
+            else
+            {
+                LOG.debug("No node can be resolved with the relative path [{}] from the path [{}]", jcrParentNode.relativeParentPath(), node.getPath());
+            }
+        }
+        else if (relativeParentLevelDefined && absoluteParentLevelDefined)
+        {
+            throw new JcrParameterException("For field [" + field.getName() + "] of class [" + field.getDeclaringClass().getCanonicalName()
+                    + "] the parameters 'relativeParentLevel' as well as 'absoluteParentLevel' are defined but they are mutually exclusive to each other.");
+        }
+        else if (relativeParentLevelDefined && absoluteParentLevel < node.getDepth())
+        {
+            resolvedParentNode = node;
+            for (int i = 0; i < relativeParentLevel; i++)
+            {
+                resolvedParentNode = resolvedParentNode.getParent();
+            }
+        }
+        else if (absoluteParentLevelDefined && absoluteParentLevel < node.getDepth())
+        {
+            resolvedParentNode = node;
+            for (; resolvedParentNode.getDepth() > absoluteParentLevel; resolvedParentNode = resolvedParentNode.getParent())
+                ;
+        }
+        else
+        {
+            resolvedParentNode = node.getParent();
+        }
+
+        Object resolvedParentObject = resolvedParentNode;
+        if (resolvedParentObject != null && !Node.class.equals(field.getType()))
+        {
+            resolvedParentObject = jcrom.fromNode(field.getType(), resolvedParentNode);
+        }
+        return resolvedParentObject;
+    }
+
     private boolean resolveFieldRequired(Field field, Object obj) throws IllegalAccessException
     {
         JcrChildNode jcrChildNode = getJcrom().getAnnotationReader().getAnnotation(field, JcrChildNode.class);
@@ -999,31 +1064,31 @@ class Mapper
     {
         JcrChildNode jcrChildNode = getJcrom().getAnnotationReader().getAnnotation(field, JcrChildNode.class);
         String childNodeName = field.getName();
-        if(!JcrChildNode.DEFAULT_NAME.equals(jcrChildNode.name()))
+        if (!JcrChildNode.DEFAULT_NAME.equals(jcrChildNode.name()))
         {
             childNodeName = jcrChildNode.name();
         }
         try
         {
-            if(node.getSession().itemExists(node.getPath() + "/" + childNodeName))
+            if (node.getSession().itemExists(node.getPath() + "/" + childNodeName))
             {
                 Node childNode = node.getNode(childNodeName);
                 field.set(obj, childNode);
             }
         }
-        catch(IllegalAccessException e)
+        catch (IllegalAccessException e)
         {
-            LOG.error("Error while setting child node for field ["+ field.getName() +"] of class ["+ field.getDeclaringClass().getCanonicalName() +"]", e);
+            LOG.error("Error while setting child node for field [" + field.getName() + "] of class [" + field.getDeclaringClass().getCanonicalName() + "]", e);
         }
         catch (RepositoryException e)
         {
-            LOG.error("Error while resolving child node for field ["+ field.getName() +"] of class ["+ field.getDeclaringClass().getCanonicalName() +"]", e);
+            LOG.error("Error while resolving child node for field [" + field.getName() + "] of class [" + field.getDeclaringClass().getCanonicalName() + "]", e);
         }
     }
 
     private void resolveParentNodeOfType(Node node, String nodeType, Field field, Object obj)
     {
-        if(field.getType().getComponentType() != Node.class)
+        if (field.getType() != Node.class)
         {
             LOG.error("The field [{}] of class [{}] is not type of [javax.jcr.Node]", field.getName(), field.getDeclaringClass().getCanonicalName());
             return;
@@ -1031,7 +1096,7 @@ class Mapper
 
         try
         {
-            for(Node selectedNode = node;selectedNode.getDepth() >= 0;selectedNode = selectedNode.getParent())
+            for (Node selectedNode = node; selectedNode.getDepth() >= 0; selectedNode = selectedNode.getParent())
             {
                 if (nodeType.equals(selectedNode.getPrimaryNodeType().getName()))
                 {
@@ -1042,7 +1107,7 @@ class Mapper
         }
         catch (Exception ex)
         {
-            LOG.error("Error while resolving parent node of type ["+ nodeType +"]", ex);
+            LOG.error("Error while resolving parent node of type [" + nodeType + "]", ex);
         }
     }
 

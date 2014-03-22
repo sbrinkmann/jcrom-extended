@@ -36,4 +36,13 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface JcrParentNode {
 
+	public static final int DEFAULT_VALUE_PARENT_LEVEL = Integer.MIN_VALUE;
+	
+	public static final String DEFAULT_PARENT_PATH = "##PARENT PATH NOT SET##";
+	
+	int absoluteParentLevel() default DEFAULT_VALUE_PARENT_LEVEL;
+	
+	int relativeParentLevel() default DEFAULT_VALUE_PARENT_LEVEL;
+	
+	String relativeParentPath() default DEFAULT_PARENT_PATH;
 }

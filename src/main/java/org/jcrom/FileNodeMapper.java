@@ -362,7 +362,7 @@ class FileNodeMapper {
 
         // if this is a JcrFile subclass, it may contain custom properties and 
         // child nodes that need to be mapped
-        fileObj = (T) mapper.mapNodeToClass(fileObj, fileNode, nodeFilter, parentObject, depth + 1);
+        fileObj = (T) mapper.mapNodeToClass(fileObj, fileNode, nodeFilter, depth + 1);
     }
 
     void addFiles(Field field, Object obj, Node node, Mapper mapper) throws IllegalAccessException, RepositoryException, IOException {
