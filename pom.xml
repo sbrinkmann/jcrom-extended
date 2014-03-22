@@ -262,7 +262,7 @@
 		<connection>scm:git:https://github.com/sbrinkmann/jcrom-extended.git</connection>
 		<developerConnection>scm:git:git@github.com:sbrinkmann/jcrom-extended.git</developerConnection>
 		<url>https://github.com/sbrinkmann/jcrom-extended</url>
-		<tag>HEAD</tag>
+		<tag>jcrom-extended-2.1.8</tag>
 	</scm>
 
 	<distributionManagement>
