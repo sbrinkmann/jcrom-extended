@@ -46,4 +46,6 @@ public @interface JcrProperty {
     String defaultValue() default DEFAULT_VALUE;
     
     boolean required() default false;
+    
+    boolean readOnly() default false;
 }

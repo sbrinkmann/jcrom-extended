@@ -40,7 +40,7 @@ public class TestReflection {
     public void listClassesInPackage() throws Exception {
 
         Set<Class<?>> classes = ReflectionUtils.getClasses("org.jcrom.annotations");
-        assertEquals(19, classes.size());
+        assertEquals(22, classes.size());
         assertTrue(classes.contains(JcrChildNode.class));
         assertTrue(classes.contains(JcrFileNode.LoadType.class));
 

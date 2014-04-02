@@ -107,4 +107,6 @@ public @interface JcrChildNode {
      * @since 1.4
      */
     Class<? extends Map> mapContainerClass() default HashMap.class;
+    
+    boolean readOnly() default true;
 }

@@ -35,6 +35,7 @@ import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.nodetype.NodeType;
@@ -1076,6 +1077,10 @@ class Mapper
                 field.set(obj, childNode);
             }
         }
+        catch (PathNotFoundException e)
+        {
+            LOG.info("The child node for field [" + field.getName() + "] of class [" + field.getDeclaringClass().getCanonicalName() + "] could not be resolved at ["+ childNodeName +"]");
+        }
         catch (IllegalAccessException e)
         {
             LOG.error("Error while setting child node for field [" + field.getName() + "] of class [" + field.getDeclaringClass().getCanonicalName() + "]", e);
@@ -1254,3 +1259,5 @@ class Mapper
 
     }
 }
+
+    
