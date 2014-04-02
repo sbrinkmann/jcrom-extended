@@ -3,7 +3,7 @@
 
 	<groupId>org.jcrom</groupId>
 	<artifactId>jcrom-extended</artifactId>
-	<version>2.1.10-SNAPSHOT</version>
+	<version>2.1.13-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>JCROM</name>
@@ -169,7 +169,9 @@
 				<artifactId>maven-release-plugin</artifactId>
 				<version>2.4.1</version>
 				<configuration>
-					<useReleaseProfile>false</useReleaseProfile>
+					<!-- <useReleaseProfile>false</useReleaseProfile> -->
+					<releaseProfiles>release</releaseProfiles>
+					<goals>deploy</goals>
 					<releaseProfiles>release</releaseProfiles>
 					<autoVersionSubmodules>true</autoVersionSubmodules>
 				</configuration>
@@ -269,12 +271,12 @@
 		<repository>
 			<id>internal.repo</id>
 			<name>Internal Repository</name>
-			<url>file://${basedir}/../../mvn-repo</url>
+			<url>file://${project.basedir}/../../mvn-repo</url>
 		</repository>
 		<snapshotRepository>
 			<id>internal.snapshotRepo</id>
 			<name>Internal Repository</name>
-			<url>file://${project.basedir}/mvn-repo-snapshot</url>
+			<url>file://${project.basedir}/../../mvn-repo-snapshot</url>
 			<uniqueVersion>false</uniqueVersion>
 		</snapshotRepository>
 	</distributionManagement>
