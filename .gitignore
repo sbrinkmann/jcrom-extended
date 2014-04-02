@@ -3,7 +3,7 @@ repository
 apidocs
 mvn-repo-snapshot
 repository.xml
-
+derby.log
 
 # eclipse specific git ignore
 .project
