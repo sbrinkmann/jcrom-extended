@@ -255,9 +255,16 @@ class PropertyMapper
                 // multi-value property (List)
                 List<Object> properties = new ArrayList<Object>();
                 Class<?> paramClass = ReflectionUtils.getParameterizedClass(field);
-                for (Value value : p.getValues())
+                if(p.getDefinition().isMultiple())
                 {
-                    properties.add(JcrUtils.getValue(paramClass, value));
+                    for (Value value : p.getValues())
+                    {
+                        properties.add(JcrUtils.getValue(paramClass, value));
+                    }
+                }
+                else
+                {
+                    properties.add(JcrUtils.getValue(paramClass, p.getValue()));
                 }
                 field.set(obj, properties);
 

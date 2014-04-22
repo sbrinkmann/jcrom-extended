@@ -32,12 +32,14 @@ import java.lang.annotation.Target;
 @Target({ ElementType.FIELD, ElementType.ANNOTATION_TYPE })
 public @interface JcrReference {
 
+    public static final String DEFAULT_FIELDNAME = "##fieldName##";
+    
     /**
      * The name of the JCR reference property. Defaults to the name of the field being annotated.
      * 
      * @return the name of the JCR reference property
      */
-    String name() default "fieldName";
+    String name() default DEFAULT_FIELDNAME;
 
     /**
      * Setting this to true will turn on lazy loading for this field. The default is false.
