@@ -324,10 +324,7 @@ class ReferenceMapper {
     void getReferencesFromNode(Field field, Node node, Object obj, int depth, NodeFilter nodeFilter, Mapper mapper) throws ClassNotFoundException, InstantiationException, RepositoryException, IllegalAccessException, IOException {
 
         String propertyName = getPropertyName(field);
-        if(JcrReference.DEFAULT_FIELDNAME.equals(propertyName))
-        {
-            propertyName = field.getName();
-        }
+        
         JcrReference jcrReference = mapper.getJcrom().getAnnotationReader().getAnnotation(field, JcrReference.class);
         
         if (ReflectionUtils.implementsInterface(field.getType(), List.class)) {
