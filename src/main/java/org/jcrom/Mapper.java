@@ -31,12 +31,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import javax.jcr.AccessDeniedException;
-import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
+import javax.jcr.PropertyIterator;
+import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.nodetype.NodeType;
 import javax.jcr.version.Version;
@@ -59,6 +59,7 @@ import org.jcrom.annotations.JcrParentNode;
 import org.jcrom.annotations.JcrPath;
 import org.jcrom.annotations.JcrProperty;
 import org.jcrom.annotations.JcrPropertyCheckSuccessful;
+import org.jcrom.annotations.JcrPropertyMap;
 import org.jcrom.annotations.JcrProtectedProperty;
 import org.jcrom.annotations.JcrReference;
 import org.jcrom.annotations.JcrSerializedProperty;
@@ -842,7 +843,17 @@ class Mapper
             if (jcrom.getAnnotationReader().isAnnotationPresent(field, JcrProperty.class) && nodeFilter.isDepthPropertyIncluded(depth))
             {
                 allRequiredFieldsAreAssigned &= propertyMapper.mapPropertyToField(obj, field, node, depth, nodeFilter);
-
+            }
+            else if(jcrom.getAnnotationReader().isAnnotationPresent(field, JcrPropertyMap.class))
+            {
+                if(field.getType().equals(Map.class))
+                {
+                    mapPropertiesToMap(obj, field, node);
+                }
+                else
+                {
+                    LOG.error("The field [{}] within the class [{}] is not type of [java.util.Map]", field.getName(), obj.getClass().getCanonicalName());
+                }
             }
             else if (jcrom.getAnnotationReader().isAnnotationPresent(field, JcrSerializedProperty.class) && nodeFilter.isDepthPropertyIncluded(depth))
             {
@@ -999,6 +1010,39 @@ class Mapper
         }
 
         return obj;
+    }
+
+    private void mapPropertiesToMap(Object obj, Field field, Node node) throws RepositoryException
+    {
+        JcrPropertyMap jcrPropertyMap = getJcrom().getAnnotationReader().getAnnotation(field, JcrPropertyMap.class);
+        String childNodeName = field.getName();
+        if (JcrChildNode.DEFAULT_NAME.equals(jcrPropertyMap.name()))
+        {
+            childNodeName = jcrPropertyMap.name();
+        }
+        if(node.hasNode(childNodeName))
+        {
+            Node childNode = node.getNode(childNodeName);
+            Map<String, Object> properties = new HashMap<String, Object>();
+            PropertyIterator propertyIterator = childNode.getProperties();
+            while(propertyIterator.hasNext())
+            {
+                Property property = propertyIterator.nextProperty();
+                if(property.getValue().getType() == PropertyType.STRING)
+                {
+                    properties.put(property.getName(), property.getValue().getString());
+                }
+            }
+            
+            try
+            {
+                field.set(obj, properties);
+            }
+            catch (Exception ex)
+            {
+                LOG.error("Error while setting HashMap to property ["+ field.getName() +"] within class ["+ obj.getClass().getCanonicalName() +"]", ex);
+            }
+        }
     }
 
     private Object resolveParentObject(Field field, Node node) throws RepositoryException

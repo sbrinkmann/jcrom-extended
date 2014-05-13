@@ -185,6 +185,18 @@ class PropertyMapper
             IOException
     {
         String name = getPropertyName(field);
+        boolean nameIsARelativePath = name.contains("/");
+        if(nameIsARelativePath)
+        {
+            int positionPathPropertyDelimiter = name.lastIndexOf("/");
+            String relativePath = name.substring(0, positionPathPropertyDelimiter);
+            if(node.hasNode(relativePath))
+            {
+                node = node.getNode(relativePath);
+                name = name.substring(positionPathPropertyDelimiter + 1);
+            }
+        }
+        
         if (nodeFilter == null || nodeFilter.isIncluded(NodeFilter.PROPERTY_PREFIX + field.getName(), node, depth))
         {
             if (ReflectionUtils.implementsInterface(field.getType(), Map.class))
